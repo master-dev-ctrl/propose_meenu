@@ -1,6 +1,6 @@
 kind = "web"
 previewPath = "/"
-title = "Sahil & Meenu — A Proposal"
+title = "A Proposal"
 version = "1.0.0"
 id = "artifacts/proposal"
 router = "path"
