@@ -1,36 +1,33 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { Heart, Sparkles, Coffee, Map, BookOpen, Clock, Music } from 'lucide-react';
 
+// Seeded pseudo-random for deterministic SSR
+function seededRandom(seed: number) {
+  const x = Math.sin(seed + 1) * 10000;
+  return x - Math.floor(x);
+}
+
 const BokehParticles = () => {
-  const [particles, setParticles] = useState<Array<{ id: number; size: number; x: number; y: number; duration: number; delay: number; color: string }>>([]);
-
-  useEffect(() => {
-    const colors = [
-      'rgba(212, 165, 116, 0.15)', // rose-gold
-      'rgba(232, 196, 154, 0.1)',  // champagne
-      'rgba(196, 124, 138, 0.15)', // blush
-      'rgba(255, 255, 255, 0.05)', // soft white
-    ];
-
-    const generateParticles = () => {
-      return Array.from({ length: 30 }).map((_, i) => ({
-        id: i,
-        size: Math.random() * 120 + 40,
-        x: Math.random() * 100,
-        y: Math.random() * 100,
-        duration: Math.random() * 20 + 10,
-        delay: Math.random() * -20,
-        color: colors[Math.floor(Math.random() * colors.length)],
-      }));
-    };
-
-    setParticles(generateParticles());
-  }, []);
+  const particles = Array.from({ length: 28 }).map((_, i) => ({
+    id: i,
+    size: seededRandom(i * 3) * 140 + 50,
+    x: seededRandom(i * 7) * 100,
+    y: seededRandom(i * 11) * 100,
+    duration: seededRandom(i * 5) * 22 + 14,
+    delay: seededRandom(i * 13) * -25,
+    color: [
+      'rgba(220, 80, 120, 0.22)',
+      'rgba(212, 165, 116, 0.18)',
+      'rgba(196, 124, 138, 0.22)',
+      'rgba(255, 160, 180, 0.12)',
+      'rgba(180, 40, 90, 0.18)',
+      'rgba(232, 196, 154, 0.12)',
+    ][Math.floor(seededRandom(i * 17) * 6)],
+  }));
 
   return (
     <div className="bokeh-container">
-      <div className="floral-bg" />
       {particles.map((p) => (
         <motion.div
           key={p.id}
@@ -40,22 +37,169 @@ const BokehParticles = () => {
             height: p.size,
             left: `${p.x}%`,
             top: `${p.y}%`,
-            background: `radial-gradient(circle at center, ${p.color} 0%, transparent 70%)`,
-            filter: 'blur(8px)',
+            background: `radial-gradient(circle at 35% 35%, ${p.color} 0%, transparent 70%)`,
+            filter: 'blur(18px)',
           }}
           animate={{
-            y: [0, -100, 50, 0],
-            x: [0, 50, -50, 0],
-            scale: [1, 1.2, 0.8, 1],
-            opacity: [0.3, 0.7, 0.3],
+            y: [0, -80, 40, 0],
+            x: [0, 40, -40, 0],
+            scale: [1, 1.3, 0.85, 1],
+            opacity: [0.4, 0.85, 0.4],
+          }}
+          transition={{
+            duration: p.duration,
+            repeat: Infinity,
+            ease: 'easeInOut',
+            delay: p.delay,
+          }}
+        />
+      ))}
+    </div>
+  );
+};
+
+// Floating rose petals
+const RosePetals = () => {
+  const petals = Array.from({ length: 18 }).map((_, i) => ({
+    id: i,
+    x: seededRandom(i * 31) * 100,
+    size: seededRandom(i * 23) * 14 + 8,
+    duration: seededRandom(i * 41) * 14 + 12,
+    delay: seededRandom(i * 19) * -20,
+    rotate: seededRandom(i * 37) * 360,
+    drift: seededRandom(i * 43) * 120 - 60,
+    opacity: seededRandom(i * 29) * 0.35 + 0.15,
+  }));
+
+  return (
+    <div className="bokeh-container">
+      {petals.map((p) => (
+        <motion.div
+          key={p.id}
+          className="absolute"
+          style={{
+            left: `${p.x}%`,
+            top: '-5%',
+            width: p.size,
+            height: p.size * 1.3,
+            opacity: p.opacity,
+          }}
+          animate={{
+            y: ['0vh', '115vh'],
+            x: [0, p.drift, -p.drift / 2, p.drift / 3],
+            rotate: [p.rotate, p.rotate + 360],
           }}
           transition={{
             duration: p.duration,
             repeat: Infinity,
             ease: 'linear',
             delay: p.delay,
+            times: [0, 1],
+          }}
+        >
+          {/* Petal SVG */}
+          <svg viewBox="0 0 20 26" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: '100%', height: '100%' }}>
+            <path
+              d="M10 1 C14 1, 19 6, 19 13 C19 20, 14 25, 10 25 C6 25, 1 20, 1 13 C1 6, 6 1, 10 1Z"
+              fill="url(#petalGrad)"
+              fillOpacity="0.85"
+            />
+            <path
+              d="M10 3 C10 3, 10 12, 10 24"
+              stroke="rgba(255,200,210,0.3)"
+              strokeWidth="0.5"
+              strokeLinecap="round"
+            />
+            <defs>
+              <linearGradient id="petalGrad" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stopColor="#ff8fa8" />
+                <stop offset="60%" stopColor="#e05578" />
+                <stop offset="100%" stopColor="#b03050" />
+              </linearGradient>
+            </defs>
+          </svg>
+        </motion.div>
+      ))}
+    </div>
+  );
+};
+
+// Twinkling stars
+const Stars = () => {
+  const stars = Array.from({ length: 55 }).map((_, i) => ({
+    id: i,
+    x: seededRandom(i * 61) * 100,
+    y: seededRandom(i * 67) * 100,
+    size: seededRandom(i * 71) * 2.5 + 0.8,
+    duration: seededRandom(i * 73) * 3 + 2,
+    delay: seededRandom(i * 79) * -5,
+  }));
+
+  return (
+    <div className="bokeh-container">
+      {stars.map((s) => (
+        <motion.div
+          key={s.id}
+          className="absolute rounded-full"
+          style={{
+            left: `${s.x}%`,
+            top: `${s.y}%`,
+            width: s.size,
+            height: s.size,
+            background: 'rgba(255, 230, 220, 0.9)',
+            boxShadow: `0 0 ${s.size * 2}px rgba(255, 200, 210, 0.6)`,
+          }}
+          animate={{ opacity: [0.1, 0.9, 0.1], scale: [0.8, 1.2, 0.8] }}
+          transition={{
+            duration: s.duration,
+            repeat: Infinity,
+            ease: 'easeInOut',
+            delay: s.delay,
           }}
         />
+      ))}
+    </div>
+  );
+};
+
+// Floating tiny hearts
+const FloatingHearts = () => {
+  const hearts = Array.from({ length: 12 }).map((_, i) => ({
+    id: i,
+    x: seededRandom(i * 83) * 95,
+    size: seededRandom(i * 89) * 12 + 6,
+    duration: seededRandom(i * 97) * 12 + 10,
+    delay: seededRandom(i * 101) * -18,
+    drift: seededRandom(i * 107) * 80 - 40,
+    opacity: seededRandom(i * 109) * 0.25 + 0.08,
+  }));
+
+  return (
+    <div className="bokeh-container">
+      {hearts.map((h) => (
+        <motion.div
+          key={h.id}
+          className="absolute"
+          style={{ left: `${h.x}%`, bottom: '-5%', opacity: h.opacity }}
+          animate={{
+            y: ['0vh', '-115vh'],
+            x: [0, h.drift, -h.drift / 2],
+            rotate: [0, 20, -20, 0],
+          }}
+          transition={{
+            duration: h.duration,
+            repeat: Infinity,
+            ease: 'linear',
+            delay: h.delay,
+          }}
+        >
+          <svg width={h.size} height={h.size} viewBox="0 0 24 24" fill="none">
+            <path
+              d="M12 21C12 21 3 14 3 8.5C3 5.42 5.42 3 8.5 3C10.24 3 11.91 3.81 13 5.08C14.09 3.81 15.76 3 17.5 3C20.58 3 23 5.42 23 8.5C23 14 14 21 12 21Z"
+              fill="rgba(220,80,120,0.8)"
+            />
+          </svg>
+        </motion.div>
       ))}
     </div>
   );
@@ -87,7 +231,10 @@ export default function App() {
 
   return (
     <div className="relative text-cream selection:bg-rose-gold/30">
+      <Stars />
       <BokehParticles />
+      <RosePetals />
+      <FloatingHearts />
 
       <main className="max-w-4xl mx-auto relative z-10">
         {/* Section 1: Hero */}
@@ -104,7 +251,7 @@ export default function App() {
             </h1>
             <div className="w-px h-16 bg-gradient-to-b from-rose-gold/50 to-transparent mb-8" />
             <p className="text-lg md:text-xl font-light text-cream/90 max-w-xl leading-relaxed">
-              There are moments that stay with you — <br className="hidden md:block" />and you, Meenu, are one of mine.
+              There are moments that stay with us forever. <br className="hidden md:block" />The first time I saw you, Meenu, was one of those moments.
             </p>
           </motion.div>
           
